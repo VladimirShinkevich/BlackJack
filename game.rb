@@ -170,6 +170,7 @@ class Game
   def clear_table
     @user.hand = []
     @diler.hand = []
+    @card = Card.new
   end
 end
 
