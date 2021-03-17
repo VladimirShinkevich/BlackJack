@@ -51,7 +51,7 @@ class Game
 
   def game
     loop do
-      open_cards if @user.hand.size == 3 || @diler.hand.size == 3
+      open_cards if @user.hand.size == 3 && @diler.hand.size == 3
       show_cards
       puts "#{@user_name} ваш ход"
       puts 'Выберите действие'
