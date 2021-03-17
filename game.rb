@@ -51,8 +51,10 @@ class Game
 
   def game
     loop do
+      system ('cls')
       open_cards if @user.hand.size == 3 && @diler.hand.size == 3
       show_cards
+      puts "В банке: #{@user.bank} $"
       puts "#{@user_name} ваш ход"
       puts 'Выберите действие'
       puts USER_TURN
@@ -61,7 +63,10 @@ class Game
       when 1 then skip_turn
       when 2 then add_card
       when 3 then open_cards
-      when 4 then exit
+      when 4 
+        puts "#{@user_name} до скорых встреч!!!"
+        sleep 2
+        exit
       end
     end
   end
@@ -69,7 +74,7 @@ class Game
   def deal_cards
     2.times { @user.take_card(@card) }
     2.times { @diler.take_card(@card) }
-    @diler.take_card(@card) if @diler.points < 17
+    @diler.take_card(@card) if @diler.points < 17    
   end
 
   def show_cards
@@ -80,7 +85,13 @@ class Game
   end
 
   def skip_turn
+    if @diler.hand.size >= 3
+      puts "Дилер пропускает ход..."
+      sleep 2
+      game 
+    else  
     @diler.take_card(@card)
+    end
   end
 
   def add_card
@@ -88,16 +99,17 @@ class Game
   end
 
   def open_cards
+    system ('cls')
     puts '*******************************'
     puts 'Ваши карты: '
     @user.hand.each { |user_card| print "|#{user_card}| " }
     puts ''
-    puts "Ваши очки: #{@user.points}"
+    puts "Ваши очки: #{@user.points}, ваш банк: #{@user.bank} $"
     puts '*******************************'
     puts 'Карты дилера: '
     @diler.hand.each { |diler_card| print "|#{diler_card}| " }
     puts ''
-    puts "Очки дилера: #{@diler.points}"
+    puts "Очки дилера: #{@diler.points}, банк дилера: #{@diler.bank} $"
     puts '*******************************'
     game_over
   end
@@ -124,7 +136,10 @@ class Game
     choose = gets.chomp.to_i
     case choose
     when 1 then start
-    when 2 then exit
+    when 2 
+      puts "#{@user_name} до скорых встреч!!!"
+      sleep 2
+      exit
     end
   end
 
