@@ -1,178 +1,159 @@
 # frozen_string_literal: true
 
-require_relative 'card'
-require_relative 'diler'
-require_relative 'interface'
-require_relative 'player'
-require_relative 'user'
-
 class Game
-  attr_reader :user, :card, :diler
+  private
 
-  def initialize
-    @user = User.new
-    @diler = Diler.new
-    @card = Card.new
+  attr_accessor :user, :diler, :deck
+  attr_reader :interface
+
+  public
+
+  def initialize(user, diler, interface)
+    @user = user
+    @diler = diler
+    @interface = interface
+    @deck = Deck.new
   end
 
   def menu
-    puts '##################################'
-    puts '##      $$$ BlackJack $$$       ##'
-    puts '##################################'
-    puts START_MENU
-    choose = gets.chomp.to_i
-    case choose
-    when 1 then user_data
-    when 2
-      puts RULES_GAME
-      choose1 = gets.chomp.to_i
-      case choose1
-      when 1 then menu
-      end
-    end
+    @interface.menu
+    start_game
   end
 
-  def user_data
-    print 'Введите ваше имя: '
-    @user_name = gets.chomp.capitalize!
-    start
-  end
-
-  def start
-    puts "#{@user_name} ваш банк #{@user.bank} $"
-    puts "Банк дилера: #{@diler.bank} $"
+  def start_game
     deal_cards
-    @user.bet
-    @diler.bet
-    puts 'Вы и Казино сделали ставки по 10 $'
-    puts "На кону #{Player.class_variable_get :@@steak} $!!!"
+    make_bet
+    @interface.start_data(@user, @diler)
     game
   end
 
+  private
+
   def game
     loop do
-      system ('cls')
-      open_cards if @user.hand.size == 3 && @diler.hand.size == 3
-      show_cards
-      puts "В банке: #{@user.bank} $"
-      puts "#{@user_name} ваш ход"
-      puts 'Выберите действие'
-      puts USER_TURN
-      choose = gets.chomp.to_i
-      case choose
-      when 1 then skip_turn
-      when 2 then add_card
-      when 3 then open_cards
-      when 4 
-        puts "#{@user_name} до скорых встреч!!!"
-        sleep 2
-        exit
+      system('cls')
+      if full_hand?
+        @interface.open_cards(@user, @diler)
+        game_over
+      else
+        @interface.show_cards(@user, @diler)
+        @interface.show_action(@user)
+        choose = gets.chomp.to_i
+        case choose
+        when 1 then skip_turn
+        when 2 then add_card
+        when 3
+          @interface.open_cards(@user, @diler)
+          game_over
+        when 4
+          @interface.goob_by
+          sleep 2
+          exit
+        end
       end
     end
   end
 
-  def deal_cards
-    2.times { @user.take_card(@card) }
-    2.times { @diler.take_card(@card) }
-    @diler.take_card(@card) if @diler.points < 17    
-  end
-
-  def show_cards
-    puts 'Ваши карты: '
-    @user.hand.each { |user_card| puts user_card.to_s }
-    puts 'Карты дилера: '
-    @diler.hand.each { |_diler_card| puts ':)' }
-  end
-
-  def skip_turn
-    if @diler.hand.size >= 3
-      puts "Дилер пропускает ход..."
+  # новая игра
+  def next_game
+    @interface.keep_playing
+    choose = gets.chomp.to_i
+    case choose
+    when 1 then start_game
+    when 2
+      @interface.goob_by
       sleep 2
-      game 
-    else  
-    @diler.take_card(@card)
+      exit
     end
   end
 
+  # пропустить ход, ход передается дилеру
+  def skip_turn
+    if @diler.hand.cards.size >= 3
+      @interface.diler_turn
+      sleep 2
+      game
+    else
+      @diler.hand.take_card(@deck)
+    end
+  end
+
+  # взять карту, для игрока
   def add_card
-    @user.take_card(@card)
+    @user.hand.take_card(@deck)
+    if @user.hand.cards.size >= 3
+      @interface.open_cards(@user, @diler)
+      game_over
+    end
   end
 
-  def open_cards
-    system ('cls')
-    puts '*******************************'
-    puts 'Ваши карты: '
-    @user.hand.each { |user_card| print "|#{user_card}| " }
-    puts ''
-    puts "Ваши очки: #{@user.points}, ваш банк: #{@user.bank} $"
-    puts '*******************************'
-    puts 'Карты дилера: '
-    @diler.hand.each { |diler_card| print "|#{diler_card}| " }
-    puts ''
-    puts "Очки дилера: #{@diler.points}, банк дилера: #{@diler.bank} $"
-    puts '*******************************'
-    game_over
+  # раздать карты
+  def deal_cards
+    2.times { @user.hand.take_card(@deck) }
+    2.times { @diler.hand.take_card(@deck) }
+    @diler.hand.take_card(@deck) if @diler.hand.points < 17
   end
 
+  def make_bet
+    @user.bet
+    @diler.bet
+  end
+
+  # победа
   def win
     @user.get_steak(Player.class_variable_get(:@@steak))
     Player.class_variable_set :@@steak, 0
   end
 
+  # поражение
   def lose
     @diler.get_steak(Player.class_variable_get(:@@steak))
     Player.class_variable_set :@@steak, 0
   end
 
+  # ничья
   def draw
     @user.bank += 10
     @diler.bank += 10
     Player.class_variable_set :@@steak, 0
   end
 
-  def next_game
-    puts 'Выберите действие'
-    puts CONTINUE
-    choose = gets.chomp.to_i
-    case choose
-    when 1 then start
-    when 2 
-      puts "#{@user_name} до скорых встреч!!!"
-      sleep 2
-      exit
+  def full_hand?
+    if @user.hand.cards.size == 3 && @diler.hand.cards.size == 3
+      true
+    else
+      false
     end
   end
 
+  # очистить стол
+  def clear_table
+    @user.hand.cards = []
+    @diler.hand.cards = []
+    @deck = Deck.new
+  end
+
+  # конец игры
   def game_over
-    if @user.points <= 21 && @user.points > @diler.points
+    if @user.hand.points <= 21 && @user.hand.points > @diler.hand.points
       win
-      puts 'Вы выиграли!!!'
-    elsif @user.points > 21
+      @interface.win_text
+    elsif @user.hand.points > 21
       lose
-      puts 'Вы проиграли!!!'
-    elsif @diler.points <= 21 && @diler.points > @user.points
+      @interface.lose_text
+    elsif @diler.hand.points <= 21 && @diler.hand.points > @user.hand.points
       lose
-      puts 'Вы проиграли!!!'
-    elsif @diler.points > 21
+      @interface.lose_text
+    elsif @diler.hand.points > 21
       win
-      puts 'Вы выиграли!!!'
+      @interface.win_text
     else
       draw
-      puts 'Ничья...'
-      puts 'Игрокам возвращается по 10 $'
+      @interface.draw_text
     end
     puts '##############################'
     puts ''
     clear_table
     next_game
   end
-
-  def clear_table
-    @user.hand = []
-    @diler.hand = []
-    @card = Card.new
-  end
 end
-
-blackjack = Game.new
-blackjack.menu
