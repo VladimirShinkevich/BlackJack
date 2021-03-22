@@ -6,21 +6,20 @@ class Deck
   attr_reader :deck
 
   def initialize
-    @deck = []
+    @card = []
     create_deck
   end
 
   def give_card
-    take_card = @deck[rand(@deck.size)]
-    @deck.delete(take_card)
+    take_card = @card[rand(@card.size)]
+    @card.delete(take_card)
   end
 
   def create_deck
-    Card::VOLUE.each do |vol|
-      @deck << "#{vol} #{Card::SUIT[0]}"
-      @deck << "#{vol} #{Card::SUIT[1]}"
-      @deck << "#{vol} #{Card::SUIT[2]}"
-      @deck << "#{vol} #{Card::SUIT[3]}"
+    Card::VALUE.each do |value|
+      Card::SUIT.each do |suit|
+        @card << Card.new(value, suit)
+      end
     end
   end
 end
