@@ -18,9 +18,8 @@ class Hand
   def points
     @point = 0
     @cards.each do |card|
-      name = card.split(' ')
-      index = name[0]
-      case index
+      val = card.value
+      case val
       when 'K' then @point += 10
       when 'Q' then @point += 10
       when 'J' then @point += 10
@@ -28,7 +27,7 @@ class Hand
         @point += 11 if @point + 11 < 21
         @point += 1 if @point + 1 > 21
       else
-        @point += index.to_i
+        @point += val.to_i
       end
     end
     @point
