@@ -36,12 +36,12 @@ class Interface
     puts '##      $$$ BlackJack $$$       ##'
     puts '##################################'
     puts START_MENU
-    choose = gets.chomp.to_i
-    case choose
+    choise = gets.chomp.to_i
+    case choise
     when 1 then user_data
     when 2
       puts RULES_GAME
-      choose1 = gets.chomp.to_i
+      choise1 = gets.chomp.to_i
       case choose1
       when 1 then menu
       end
@@ -56,6 +56,10 @@ class Interface
   def user_data
     print 'Введите ваше имя: '
     @user_name = gets.chomp.capitalize!
+    raise StandardError, 'Вы не ввели имя!!!' if @user_name.nil?
+  rescue StandardError => e
+    puts e.message
+    retry
   end
 
   def start_data(user, diler)
@@ -70,7 +74,7 @@ class Interface
     puts 'Ваши карты: '
     user.hand.cards.each { |user_card| puts user_card.to_s }
     puts 'Карты дилера: '
-    diler.hand.cards.each { |_diler_card| puts ':)' }
+    diler.hand.cards.each { |_diler_card| puts '|X|' }
   end
 
   def diler_turn
@@ -98,6 +102,7 @@ class Interface
   def keep_playing
     puts 'Выберите действие'
     puts CONTINUE
+    choise = gets.chomp.to_i
   end
 
   def show_action(user)
@@ -105,6 +110,7 @@ class Interface
     puts "#{@user_name} ваш ход"
     puts 'Выберите действие'
     puts USER_TURN
+    choise = gets.chomp.to_i
   end
 
   def goob_by
@@ -122,5 +128,10 @@ class Interface
   def draw_text
     puts 'Ничья...'
     puts 'Игрокам возвращается по 10 $'
+  end
+
+  def end_game_line
+    puts '##############################'
+    puts ''
   end
 end
