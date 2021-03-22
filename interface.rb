@@ -42,7 +42,7 @@ class Interface
     when 2
       puts RULES_GAME
       choise1 = gets.chomp.to_i
-      case choose1
+      case choise1
       when 1 then menu
       end
     when 3
