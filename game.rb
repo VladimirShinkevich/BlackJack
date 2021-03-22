@@ -37,9 +37,8 @@ class Game
         game_over
       else
         @interface.show_cards(@user, @diler)
-        @interface.show_action(@user)
-        choose = gets.chomp.to_i
-        case choose
+        action = @interface.show_action(@user)
+        case action
         when 1 then skip_turn
         when 2 then add_card
         when 3
@@ -56,9 +55,8 @@ class Game
 
   # новая игра
   def next_game
-    @interface.keep_playing
-    choose = gets.chomp.to_i
-    case choose
+    action = @interface.keep_playing
+    case action
     when 1 then start_game
     when 2
       @interface.goob_by
@@ -151,8 +149,7 @@ class Game
       draw
       @interface.draw_text
     end
-    puts '##############################'
-    puts ''
+    @interface.end_game_line
     clear_table
     next_game
   end
